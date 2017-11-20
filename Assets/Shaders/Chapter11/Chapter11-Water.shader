@@ -4,10 +4,10 @@ Shader "Unity Shaders Book/Chapter 11/Water" {
 	Properties {
 		_MainTex ("Main Tex", 2D) = "white" {}
 		_Color ("Color Tint", Color) = (1, 1, 1, 1)
-		_Magnitude ("Distortion Magnitude", Float) = 1
- 		_Frequency ("Distortion Frequency", Float) = 1
- 		_InvWaveLength ("Distortion Inverse Wave Length", Float) = 10
- 		_Speed ("Speed", Float) = 0.5
+		_Magnitude ("Distortion Magnitude", Float) = 1 // 波动幅度
+ 		_Frequency ("Distortion Frequency", Float) = 1 // 波动频率
+ 		_InvWaveLength ("Distortion Inverse Wave Length", Float) = 10 // 波长倒数
+ 		_Speed ("Speed", Float) = 0.5 // 水流速度
 	}
 	SubShader {
 		// Need to disable batching because of the vertex animation
@@ -49,9 +49,10 @@ Shader "Unity Shaders Book/Chapter 11/Water" {
 				
 				float4 offset;
 				offset.yzw = float3(0.0, 0.0, 0.0);
+				// 简谐运动： A* sin(wt + a)
 				offset.x = sin(_Frequency * _Time.y + v.vertex.x * _InvWaveLength + v.vertex.y * _InvWaveLength + v.vertex.z * _InvWaveLength) * _Magnitude;
 				o.pos = UnityObjectToClipPos(v.vertex + offset);
-				
+				//o.pos = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
 				o.uv +=  float2(0.0, _Time.y * _Speed);
 				
