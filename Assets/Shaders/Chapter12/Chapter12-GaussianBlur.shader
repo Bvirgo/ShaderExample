@@ -6,7 +6,7 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 		_BlurSize ("Blur Size", Float) = 1.0
 	}
 	SubShader {
-		CGINCLUDE
+		CGINCLUDE // 宏，组织代码，这些代码不需要包含在任何pass语义块中，便于代码重用
 		
 		#include "UnityCG.cginc"
 		
@@ -19,12 +19,13 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 			half2 uv[5]: TEXCOORD0;
 		};
 		  
+		// 垂直方向
 		v2f vertBlurVertical(appdata_img v) {
 			v2f o;
 			o.pos = UnityObjectToClipPos(v.vertex);
 			
 			half2 uv = v.texcoord;
-			
+			// 垂直采样的纹素坐标
 			o.uv[0] = uv;
 			o.uv[1] = uv + float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;
 			o.uv[2] = uv - float2(0.0, _MainTex_TexelSize.y * 1.0) * _BlurSize;
@@ -34,12 +35,14 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 			return o;
 		}
 		
+		// 水平方向
 		v2f vertBlurHorizontal(appdata_img v) {
 			v2f o;
 			o.pos = UnityObjectToClipPos(v.vertex);
 			
 			half2 uv = v.texcoord;
 			
+			// 水平采样的纹素坐标
 			o.uv[0] = uv;
 			o.uv[1] = uv + float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;
 			o.uv[2] = uv - float2(_MainTex_TexelSize.x * 1.0, 0.0) * _BlurSize;
@@ -50,6 +53,8 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 		}
 		
 		fixed4 fragBlur(v2f i) : SV_Target {
+
+			// 高斯核，权重
 			float weight[3] = {0.4026, 0.2442, 0.0545};
 			
 			fixed3 sum = tex2D(_MainTex, i.uv[0]).rgb * weight[0];
@@ -67,6 +72,7 @@ Shader "Unity Shaders Book/Chapter 12/Gaussian Blur" {
 		ZTest Always Cull Off ZWrite Off
 		
 		Pass {
+			// 定义：通道名，便于通道重用
 			NAME "GAUSSIAN_BLUR_VERTICAL"
 			
 			CGPROGRAM

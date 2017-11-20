@@ -9,14 +9,13 @@ public class PostEffectsBase : MonoBehaviour {
 	protected void CheckResources() {
 		bool isSupported = CheckSupport();
 		
-		if (isSupported == false) {
-			NotSupported();
-		}
-	}
+		if (!isSupported)   NotSupported();
+    }
 
 	// Called in CheckResources to check support on this platform
 	protected bool CheckSupport() {
-		if (SystemInfo.supportsImageEffects == false || SystemInfo.supportsRenderTextures == false) {
+		if (!SystemInfo.supportsImageEffects)
+        {
 			Debug.LogWarning("This platform does not support image effects or render textures.");
 			return false;
 		}

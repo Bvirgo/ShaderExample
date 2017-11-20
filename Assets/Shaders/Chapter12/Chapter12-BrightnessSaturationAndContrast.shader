@@ -9,7 +9,9 @@ Shader "Unity Shaders Book/Chapter 12/Brightness Saturation And Contrast" {
 	}
 	SubShader {
 		Pass {  
-			ZTest Always Cull Off ZWrite Off
+			ZTest Always 
+			Cull Off 
+			ZWrite Off
 			
 			CGPROGRAM  
 			#pragma vertex vert  
@@ -26,7 +28,8 @@ Shader "Unity Shaders Book/Chapter 12/Brightness Saturation And Contrast" {
 				float4 pos : SV_POSITION;
 				half2 uv: TEXCOORD0;
 			};
-			  
+			
+			// 图像处理时，必要数据数据：appdata_img
 			v2f vert(appdata_img v) {
 				v2f o;
 				
@@ -40,15 +43,18 @@ Shader "Unity Shaders Book/Chapter 12/Brightness Saturation And Contrast" {
 			fixed4 frag(v2f i) : SV_Target {
 				fixed4 renderTex = tex2D(_MainTex, i.uv);  
 				  
-				// Apply brightness
+				// Apply brightness :亮度
 				fixed3 finalColor = renderTex.rgb * _Brightness;
 				
-				// Apply saturation
+				// Apply saturation：饱和度
+				// 首先，创建一个饱和度为0的颜色值
 				fixed luminance = 0.2125 * renderTex.r + 0.7154 * renderTex.g + 0.0721 * renderTex.b;
 				fixed3 luminanceColor = fixed3(luminance, luminance, luminance);
+				// 饱和度0颜色值 和 上步颜色值 以饱和度系数为权重 差值
 				finalColor = lerp(luminanceColor, finalColor, _Saturation);
 				
-				// Apply contrast
+				// Apply contrast：对比度
+				// 首先，创建一个对比度为0的颜色值
 				fixed3 avgColor = fixed3(0.5, 0.5, 0.5);
 				finalColor = lerp(avgColor, finalColor, _Contrast);
 				

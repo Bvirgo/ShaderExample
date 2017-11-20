@@ -36,6 +36,7 @@ public class Bloom : PostEffectsBase {
 			RenderTexture buffer0 = RenderTexture.GetTemporary(rtW, rtH, 0);
 			buffer0.filterMode = FilterMode.Bilinear;
 			
+            // 指定通道0：根据阈值，分离出高亮区域
 			Graphics.Blit(src, buffer0, material, 0);
 			
 			for (int i = 0; i < iterations; i++) {
@@ -44,20 +45,24 @@ public class Bloom : PostEffectsBase {
 				RenderTexture buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
 				
 				// Render the vertical pass
+                // 指定通道1：高斯垂直采样
 				Graphics.Blit(buffer0, buffer1, material, 1);
 				
 				RenderTexture.ReleaseTemporary(buffer0);
 				buffer0 = buffer1;
 				buffer1 = RenderTexture.GetTemporary(rtW, rtH, 0);
-				
-				// Render the horizontal pass
-				Graphics.Blit(buffer0, buffer1, material, 2);
+
+                // Render the horizontal pass
+                // 指定通道2：高斯水平采样
+                Graphics.Blit(buffer0, buffer1, material, 2);
 				
 				RenderTexture.ReleaseTemporary(buffer0);
 				buffer0 = buffer1;
 			}
 
 			material.SetTexture ("_Bloom", buffer0);  
+
+            // 指定通道3：混合原纹理 和 高亮高斯处理结果
 			Graphics.Blit (src, dest, material, 3);  
 
 			RenderTexture.ReleaseTemporary(buffer0);
