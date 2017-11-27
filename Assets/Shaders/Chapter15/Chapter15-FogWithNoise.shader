@@ -1,5 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
+﻿
 Shader "Unity Shaders Book/Chapter 15/Fog With Noise" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
@@ -26,6 +25,7 @@ Shader "Unity Shaders Book/Chapter 15/Fog With Noise" {
 		fixed4 _FogColor;
 		float _FogStart;
 		float _FogEnd;
+
 		sampler2D _NoiseTex;
 		half _FogXSpeed;
 		half _FogYSpeed;
@@ -71,13 +71,19 @@ Shader "Unity Shaders Book/Chapter 15/Fog With Noise" {
 		}
 		
 		fixed4 frag(v2f i) : SV_Target {
+			// 深度纹理采样，获取深度值
 			float linearDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth));
 			float3 worldPos = _WorldSpaceCameraPos + linearDepth * i.interpolatedRay.xyz;
 			
+			// _NoiseAmount:噪声影响程度
 			float2 speed = _Time.y * float2(_FogXSpeed, _FogYSpeed);
+
+			// 噪声采样，取r通道(没到道理可讲，就是实践出真知，看着对，那就对)
 			float noise = (tex2D(_NoiseTex, i.uv + speed).r - 0.5) * _NoiseAmount;
 					
 			float fogDensity = (_FogEnd - worldPos.y) / (_FogEnd - _FogStart); 
+
+			// 区域内雾效，添加噪声因子，保证同高度，浓度可变
 			fogDensity = saturate(fogDensity * _FogDensity * (1 + noise));
 			
 			fixed4 finalColor = tex2D(_MainTex, i.uv);

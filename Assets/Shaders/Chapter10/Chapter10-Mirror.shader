@@ -31,6 +31,7 @@ Shader "Unity Shaders Book/Chapter 10/Mirror" {
 				
 				o.uv = v.texcoord;
 				// Mirror needs to filp x
+				// x轴上，翻转纹理
 				o.uv.x = 1 - o.uv.x;
 				
 				return o;

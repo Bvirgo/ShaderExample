@@ -22,6 +22,7 @@ Shader "Unity Shaders Book/Chapter 13/Edge Detection Normals And Depth" {
 		float _SampleDistance;
 		half4 _Sensitivity;
 		
+		// 深度，法线纹理
 		sampler2D _CameraDepthNormalsTexture;
 		
 		struct v2f {
@@ -41,6 +42,7 @@ Shader "Unity Shaders Book/Chapter 13/Edge Detection Normals And Depth" {
 				uv.y = 1 - uv.y;
 			#endif
 			
+			// 附近采样纹理
 			o.uv[1] = uv + _MainTex_TexelSize.xy * half2(1,1) * _SampleDistance;
 			o.uv[2] = uv + _MainTex_TexelSize.xy * half2(-1,-1) * _SampleDistance;
 			o.uv[3] = uv + _MainTex_TexelSize.xy * half2(-1,1) * _SampleDistance;
@@ -49,6 +51,7 @@ Shader "Unity Shaders Book/Chapter 13/Edge Detection Normals And Depth" {
 			return o;
 		}
 		
+		// 计算对角线两个纹理的差值;0:存在一条边，1：没边
 		half CheckSame(half4 center, half4 sample) {
 			half2 centerNormal = center.xy;
 			float centerDepth = DecodeFloatRG(center.zw);
@@ -57,20 +60,24 @@ Shader "Unity Shaders Book/Chapter 13/Edge Detection Normals And Depth" {
 			
 			// difference in normals
 			// do not bother decoding normals - there's no need here
+			// 法线差值 * 法线检测敏感度
 			half2 diffNormal = abs(centerNormal - sampleNormal) * _Sensitivity.x;
 			int isSameNormal = (diffNormal.x + diffNormal.y) < 0.1;
 			// difference in depth
+			// 深度差值 * 深度检测敏感度
 			float diffDepth = abs(centerDepth - sampleDepth) * _Sensitivity.y;
 			// scale the required threshold by the distance
 			int isSameDepth = diffDepth < 0.1 * centerDepth;
 			
-			// return:
+			// return: 法线差值 和 深度差值 均超过阈值，就是边了
 			// 1 - if normals and depth are similar enough
 			// 0 - otherwise
 			return isSameNormal * isSameDepth ? 1.0 : 0.0;
 		}
 		
 		fixed4 fragRobertsCrossDepthAndNormal(v2f i) : SV_Target {
+
+			// 4个深度 法线样本
 			half4 sample1 = tex2D(_CameraDepthNormalsTexture, i.uv[1]);
 			half4 sample2 = tex2D(_CameraDepthNormalsTexture, i.uv[2]);
 			half4 sample3 = tex2D(_CameraDepthNormalsTexture, i.uv[3]);

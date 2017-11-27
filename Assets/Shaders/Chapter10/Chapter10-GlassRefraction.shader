@@ -3,9 +3,9 @@
 
 Shader "Unity Shaders Book/Chapter 10/Glass Refraction" {
 	Properties {
-		_MainTex ("Main Tex", 2D) = "white" {}
-		_BumpMap ("Normal Map", 2D) = "bump" {}
-		_Cubemap ("Environment Cubemap", Cube) = "_Skybox" {}
+		_MainTex ("Main Tex", 2D) = "white" {} // 主贴图
+		_BumpMap ("Normal Map", 2D) = "bump" {} // 法线贴图
+		_Cubemap ("Environment Cubemap", Cube) = "_Skybox" {} // 天空盒，模拟反射
 		_Distortion ("Distortion", Range(0, 100)) = 10
 		_RefractAmount ("Refract Amount", Range(0.0, 1.0)) = 1.0
 	}
@@ -108,6 +108,8 @@ Shader "Unity Shaders Book/Chapter 10/Glass Refraction" {
 				// 通过反射向量，进行天空盒纹理采样，模拟反射
 				fixed3 reflDir = reflect(-worldViewDir, bump);
 				fixed4 texColor = tex2D(_MainTex, i.uv.xy);
+
+				// 反射向量采样天空盒，模拟反射
 				fixed3 reflCol = texCUBE(_Cubemap, reflDir).rgb * texColor.rgb;
 				
 				// 屏幕纹理采样结果 和 天空盒采样结果 混合

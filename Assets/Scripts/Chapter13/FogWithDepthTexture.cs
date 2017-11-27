@@ -14,7 +14,7 @@ public class FogWithDepthTexture : PostEffectsBase {
 	}
 
 	private Camera myCamera;
-	public Camera camera {
+	public Camera MainCamera {
 		get {
 			if (myCamera == null) {
 				myCamera = GetComponent<Camera>();
@@ -27,7 +27,7 @@ public class FogWithDepthTexture : PostEffectsBase {
 	public Transform cameraTransform {
 		get {
 			if (myCameraTransform == null) {
-				myCameraTransform = camera.transform;
+				myCameraTransform = MainCamera.transform;
 			}
 
 			return myCameraTransform;
@@ -43,22 +43,26 @@ public class FogWithDepthTexture : PostEffectsBase {
 	public float fogEnd = 2.0f;
 
 	void OnEnable() {
-		camera.depthTextureMode |= DepthTextureMode.Depth;
+		MainCamera.depthTextureMode |= DepthTextureMode.Depth;
 	}
 	
 	void OnRenderImage (RenderTexture src, RenderTexture dest) {
 		if (material != null) {
 			Matrix4x4 frustumCorners = Matrix4x4.identity;
 
-			float fov = camera.fieldOfView;
-			float near = camera.nearClipPlane;
-			float aspect = camera.aspect;
+			float fov = MainCamera.fieldOfView;
+			float near = MainCamera.nearClipPlane;
+            // 摄像机的视口比例：也就是宽高比 width = height * aspect;
+			float aspect = MainCamera.aspect;
 
 			float halfHeight = near * Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
 			Vector3 toRight = cameraTransform.right * halfHeight * aspect;
 			Vector3 toTop = cameraTransform.up * halfHeight;
 
+            // 摄像机近裁剪片，左上顶点在世界空间中的方向
 			Vector3 topLeft = cameraTransform.forward * near + toTop - toRight;
+
+            // 深度值（像素 到 摄像机方向向量的Z值） 和 像素到摄像机距离的实际距离 比例
 			float scale = topLeft.magnitude / near;
 
 			topLeft.Normalize();
@@ -76,17 +80,21 @@ public class FogWithDepthTexture : PostEffectsBase {
 			bottomRight.Normalize();
 			bottomRight *= scale;
 
+            // 存储四个顶点的方向
 			frustumCorners.SetRow(0, bottomLeft);
 			frustumCorners.SetRow(1, bottomRight);
 			frustumCorners.SetRow(2, topRight);
 			frustumCorners.SetRow(3, topLeft);
 
 			material.SetMatrix("_FrustumCornersRay", frustumCorners);
-
+            // 浓度
 			material.SetFloat("_FogDensity", fogDensity);
+            // Fog颜色
 			material.SetColor("_FogColor", fogColor);
+            // 雾效起始高度
 			material.SetFloat("_FogStart", fogStart);
-			material.SetFloat("_FogEnd", fogEnd);
+            // 雾效终止高度
+            material.SetFloat("_FogEnd", fogEnd);
 
 			Graphics.Blit (src, dest, material);
 		} else {
